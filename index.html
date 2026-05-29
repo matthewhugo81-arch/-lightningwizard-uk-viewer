@@ -1,167 +1,385 @@
 <!doctype html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="utf-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
 <title>Lightning Wizard UK Viewer</title>
+
 <style>
+
   :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#0b1220;color:#e5e7eb}
+
   *{box-sizing:border-box}
+
   body{margin:0;background:#0b1220;color:#e5e7eb}
+
   header{display:none}
+
   h1{font-size:18px;margin:0 0 2px}.sub{font-size:12px;color:#cbd5e1}
+
   .bar{display:flex;gap:7px;overflow-x:auto;padding:8px 10px;background:#0f172a;border-bottom:1px solid #253044;position:sticky;top:0;z-index:29;align-items:center}
+
   button,a.open,select{white-space:nowrap;border:1px solid #475569;border-radius:10px;background:#1e293b;color:#e5e7eb;padding:9px 11px;font-size:14px;text-decoration:none}
+
   button.active,.primary{background:#2563eb;border-color:#60a5fa;font-weight:700}
+
   .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 50px)}
+
   nav{background:#111827;border-right:1px solid #374151;padding:10px;overflow:auto}
+
   nav h2{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin:12px 0 6px}
+
   nav button{display:block;width:100%;text-align:left;margin:4px 0;padding:8px;font-size:13px}
+
   .viewer{overflow:auto;background:#dbe3ee;position:relative;-webkit-overflow-scrolling:touch}
+
   .hint{position:sticky;top:0;z-index:12;background:rgba(15,23,42,.9);color:#fff;padding:7px 10px;font-size:13px}
+
   .mapwrap{background:#eef3f8;margin:0;display:flex;justify-content:center;align-items:flex-start;min-height:calc(100vh - 90px);padding:8px}
+
   .mapbox{position:relative;width:min(1050px,100%);aspect-ratio:1.25/1;background:white;overflow:hidden;border:1px solid #94a3b8;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+
   #mapImg{position:absolute;left:0;top:0;width:1500px;height:auto;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none}
+
   .stamp{position:absolute;top:12px;left:12px;background:rgba(15,23,42,.84);border:1px solid rgba(255,255,255,.55);border-radius:10px;color:#fff;padding:10px 12px;font-size:13px;line-height:1.35;z-index:5;min-width:245px}
+
   .stamp b{font-size:14px}
+
   .fallback{display:none;position:absolute;left:16px;right:16px;top:120px;padding:14px;color:#111;background:white;border-radius:10px;z-index:6}.fallback a{color:#1d4ed8}
+
   @media(max-width:800px){
+
     header{display:none}
+
     .bar{top:0;padding:8px 8px;gap:6px}
+
     button,a.open,select{font-size:14px;padding:9px 10px}
+
     .layout{display:block}
+
     nav{display:none;grid-template-columns:1fr 1fr;gap:6px;max-height:42vh;overflow:auto;border-right:0;border-bottom:1px solid #374151}
+
     nav.open{display:grid}
+
     nav h2{grid-column:1/-1;margin:8px 0 0}
+
     nav button{font-size:13px;padding:9px}
-    .viewer{height:calc(100vh - 70px);min-height:520px}
-    .mapwrap{min-height:520px;padding:4px}
-    .mapbox{width:100%;min-height:520px;aspect-ratio:auto}
+
+    .viewer{
+
+      height:calc(100vh - 60px);
+
+      min-height:0;
+
+    }
+
+    .mapwrap{
+
+      min-height:calc(100vh - 110px);
+
+      padding:4px;
+
+    }
+
+    .mapbox{
+
+      width:100%;
+
+      height:calc(100vh - 120px);
+
+      min-height:0;
+
+      aspect-ratio:auto;
+
+    }
+
     #mapImg{width:1450px}
+
     .stamp{font-size:12px;min-width:230px}
+
   }
+
 </style>
+
 </head>
+
 <body>
 
 <div class="bar">
+
   <button class="primary" onclick="toggleMenu()">☰ Maps</button>
+
   <button onclick="resetUK()">UK view</button>
+
   <button onclick="stepFrame(-3)">◀ -3h</button>
+
   <select id="frameSelect" onchange="setFrame(this.value)" title="Forecast hour"></select>
+
   <button onclick="stepFrame(3)">+3h ▶</button>
+
   <button id="loopBtn" onclick="toggleLoop()">▶ Loop 0-72h</button>
+
   <button onclick="zoom(1.12)">Zoom +</button>
+
   <button onclick="zoom(0.89)">Zoom -</button>
+
   <button onclick="pan(-30,0)">◀</button><button onclick="pan(30,0)">▶</button><button onclick="pan(0,-30)">▲</button><button onclick="pan(0,30)">▼</button>
+
   <a class="open" id="open" href="#" target="_blank" rel="noopener">Full image</a>
+
 </div>
 
 <div class="layout">
+
 <nav id="menu">
+
   <h2>Instability / CAPE</h2>
+
   <button data-p="cape">CAPE</button><button data-p="mucape">MU CAPE</button><button data-p="icape">ICAPE</button><button data-p="layer">Layer depth</button><button data-p="lapse">Lapse rates</button><button data-p="lapse2">Low-level lapse rates</button><button data-p="kili">K / lifted index</button>
+
   <h2>Cloud depth / parcels</h2>
+
   <button data-p="lfc">LFC</button><button data-p="mulfc">MU LFC</button><button data-p="el">Equilibrium level</button><button data-p="icon10">ICON 10</button>
+
   <h2>Forcing / upper dynamics</h2>
+
   <button data-p="omega">Omega / ascent</button><button data-p="pvort">PV / upper forcing</button><button data-p="pvort2">PV / secondary</button><button data-p="difadv">Differential advection</button>
+
   <h2>Moisture / thermodynamics</h2>
+
   <button data-p="thetae">Theta-e</button><button data-p="the700">700 hPa theta-e</button><button data-p="mixr">Mixing ratio</button><button data-p="mtv">Moisture transport vectors</button><button data-p="pw">Precipitable water</button>
+
   <h2>Severe / impact checks</h2>
+
   <button data-p="srh">Storm-relative helicity</button><button data-p="srhl">Low-level SRH</button><button data-p="stp">STP</button><button data-p="gusts">Convective gusts</button><button data-p="hail">Hail</button><button data-p="spout">Waterspout</button>
+
 </nav>
 
 <section class="viewer" id="viewer">
+
   <div class="hint" id="title">Loading...</div>
+
   <div class="mapwrap">
+
     <div class="mapbox" id="mapbox">
+
       <img id="mapImg" alt="Lightning Wizard map">
+
       <div class="stamp" id="stamp"></div>
+
       <div class="fallback" id="fallback">The source image did not load. Tap <a id="fallbackLink" target="_blank" rel="noopener">Full image</a>.</div>
+
     </div>
+
   </div>
+
 </section>
+
 </div>
 
 <script>
+
 const baseImg='https://www.lightningwizard.com/maps/Europe/gfs_';
+
 let currentParam=localStorage.getItem('lw_param') || 'pw';
+
 let currentFrame=Number(localStorage.getItem('lw_frame') || 0);
+
 const frames=[]; for(let h=0;h<=240;h+=3) frames.push(h);
+
 const names={cape:'CAPE',mucape:'MU CAPE',icape:'ICAPE',layer:'Layer depth',lfc:'LFC',mulfc:'MU LFC',el:'Equilibrium level',icon10:'ICON 10',omega:'Omega / ascent',pvort:'PV / upper forcing',pvort2:'PV / secondary',difadv:'Differential advection',kili:'K / lifted index',spout:'Waterspout',lapse:'Lapse rates',lapse2:'Low-level lapse rates',the700:'700 hPa theta-e',thetae:'Theta-e',mixr:'Mixing ratio',mtv:'Moisture transport vectors',gusts:'Convective gusts',stp:'STP',srh:'Storm-relative helicity',srhl:'Low-level SRH',pw:'Precipitable water',hail:'Hail'};
 
-// CSS image crop values: scale + x/y shift. Designed to avoid canvas/CORS problems on iPhone.
 let view={scale:1.58,x:-205,y:-165};
 
 function pad(h){return String(Number(h));}
+
 function suffix(){return '_eur'+pad(currentFrame)+'.png';}
+
 function directUrl(p){return baseImg+p+suffix();}
+
 function imgUrl(p){return directUrl(p);}
+
 function latestGfsRunUTC(now=new Date()){
+
   const y=now.getUTCFullYear(), m=now.getUTCMonth(), d=now.getUTCDate(), h=now.getUTCHours();
+
   if(h>=16) return new Date(Date.UTC(y,m,d,12,0,0));
+
   if(h>=4) return new Date(Date.UTC(y,m,d,0,0,0));
+
   return new Date(Date.UTC(y,m,d-1,12,0,0));
+
 }
+
 function fmtUTC(dt){
+
   const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
   const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
   const dd=String(dt.getUTCDate()).padStart(2,'0');
+
   const hh=String(dt.getUTCHours()).padStart(2,'0');
+
   return days[dt.getUTCDay()]+' '+dd+' '+mons[dt.getUTCMonth()]+' '+dt.getUTCFullYear()+' '+hh+'Z';
+
 }
+
 function updateStamp(){
+
   const run=latestGfsRunUTC();
+
   const valid=new Date(run.getTime()+currentFrame*3600*1000);
+
   const runHour=String(run.getUTCHours()).padStart(2,'0')+'Z';
+
   document.getElementById('stamp').innerHTML='<b>GFS '+runHour+' run</b><br>Valid: '+fmtUTC(valid)+'<br>Forecast hour: +'+currentFrame+'h<br>Parameter: '+(names[currentParam]||currentParam);
+
 }
+
 function applyView(){
+
   const img=document.getElementById('mapImg');
+
   img.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')';
+
 }
+
 function refresh(){
+
   const p=currentParam, direct=directUrl(p);
+
   localStorage.setItem('lw_param',p);
+
   localStorage.setItem('lw_frame',String(currentFrame));
+
   document.getElementById('title').textContent=(names[p]||p)+' - UK-only map crop - forecast hour +'+currentFrame;
+
   document.getElementById('open').href=direct;
+
   document.getElementById('fallbackLink').href=direct;
+
   document.getElementById('frameSelect').value=String(currentFrame);
+
   document.getElementById('fallback').style.display='none';
+
   const img=document.getElementById('mapImg');
+
   img.onload=()=>{document.getElementById('fallback').style.display='none';};
+
   img.onerror=()=>{document.getElementById('fallback').style.display='block';};
+
   img.src=imgUrl(p);
+
   applyView();
+
   updateStamp();
+
   document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+
 }
+
 function setParam(p){currentParam=p;refresh(); if(window.innerWidth<=800){document.getElementById('menu').classList.remove('open');}}
+
 function setFrame(h){currentFrame=Number(h);refresh();}
+
 function stepFrame(delta){const next=currentFrame+delta;if(next<frames[0]||next>frames[frames.length-1]) return;currentFrame=next;refresh();}
+
 function resetUK(){view={scale:1.58,x:-205,y:-165};applyView();}
+
 function pan(dx,dy){view.x+=dx;view.y+=dy;applyView();}
-function zoom(f){const box=document.getElementById('mapbox');const cx=box.clientWidth/2,cy=box.clientHeight/2;view.x=cx-(cx-view.x)*f;view.y=cy-(cy-view.y)*f;view.scale*=f;applyView();}
-let loopTimer=null;
-function toggleLoop(){
-  const btn=document.getElementById('loopBtn');
-  if(loopTimer){clearInterval(loopTimer);loopTimer=null;btn.textContent='▶ Loop 0-72h';btn.classList.remove('active');return;}
-  btn.textContent='■ Stop';btn.classList.add('active');
-  loopTimer=setInterval(()=>{
-    let idx=frames.indexOf(currentFrame);
-    idx=idx+1;
-    const maxLoopIdx=frames.indexOf(72);
-    if(idx>maxLoopIdx){idx=0;}
-    currentFrame=frames[idx];
-    refresh();
-  },700);
+
+function zoom(f){
+
+  const box=document.getElementById('mapbox');
+
+  const cx=box.clientWidth/2,cy=box.clientHeight/2;
+
+  view.x=cx-(cx-view.x)*f;
+
+  view.y=cy-(cy-view.y)*f;
+
+  view.scale*=f;
+
+  applyView();
+
 }
+
+let loopTimer=null;
+
+function toggleLoop(){
+
+  const btn=document.getElementById('loopBtn');
+
+  if(loopTimer){
+
+    clearInterval(loopTimer);
+
+    loopTimer=null;
+
+    btn.textContent='▶ Loop 0-72h';
+
+    btn.classList.remove('active');
+
+    return;
+
+  }
+
+  btn.textContent='■ Stop';
+
+  btn.classList.add('active');
+
+  loopTimer=setInterval(()=>{
+
+    let idx=frames.indexOf(currentFrame);
+
+    idx=idx+1;
+
+    const maxLoopIdx=frames.indexOf(72);
+
+    if(idx>maxLoopIdx){idx=0;}
+
+    currentFrame=frames[idx];
+
+    refresh();
+
+  },700);
+
+}
+
 function toggleMenu(){document.getElementById('menu').classList.toggle('open');}
-function initFrames(){const sel=document.getElementById('frameSelect');frames.forEach(h=>{const o=document.createElement('option');o.value=String(h);o.textContent='+'+h+'h';sel.appendChild(o);});}
+
+function initFrames(){
+
+  const sel=document.getElementById('frameSelect');
+
+  frames.forEach(h=>{
+
+    const o=document.createElement('option');
+
+    o.value=String(h);
+
+    o.textContent='+'+h+'h';
+
+    sel.appendChild(o);
+
+  });
+
+}
+
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>setParam(b.dataset.p));
+
 initFrames();
+
 refresh();
+
 </script>
+
 </body>
+
 </html>
