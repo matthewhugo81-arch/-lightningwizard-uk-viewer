@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lightning Wizard UK Map Viewer</title>
+<style>
+  :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#0b1220;color:#e5e7eb}
+  *{box-sizing:border-box} body{margin:0;background:#0b1220}
+  header{position:sticky;top:0;z-index:20;background:#111827;padding:10px 12px;border-bottom:1px solid #374151}
+  h1{font-size:17px;margin:0 0 3px}.sub{font-size:12px;color:#cbd5e1;line-height:1.25}
+  .bar{display:flex;gap:7px;overflow-x:auto;padding:8px 10px;background:#0f172a;border-bottom:1px solid #253044;position:sticky;top:48px;z-index:19;align-items:center}
+  button,a.open,select{white-space:nowrap;border:1px solid #475569;border-radius:10px;background:#1e293b;color:#e5e7eb;padding:9px 11px;font-size:14px;text-decoration:none}
+  button.primary{background:#2563eb;border-color:#60a5fa;font-weight:700}
+  button.active{background:#2563eb;border-color:#60a5fa;font-weight:700}
+  .layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 96px)}
+  nav{background:#111827;border-right:1px solid #374151;padding:10px;overflow:auto}
+  nav h2{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin:12px 0 6px}
+  nav button{display:block;width:100%;text-align:left;margin:4px 0;padding:8px;font-size:13px}
+  .viewer{overflow:auto;background:#dbe3ee;position:relative;-webkit-overflow-scrolling:touch}
+  .hint{position:sticky;top:0;z-index:5;background:rgba(15,23,42,.88);color:#fff;padding:6px 10px;font-size:12px}
+  .mapwrap{background:#eef3f8;margin:0;display:flex;justify-content:center;align-items:flex-start;min-height:calc(100vh - 130px);padding:6px}
+  canvas{background:white;max-width:100%;height:auto;border:1px solid #94a3b8;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .fallback{display:none;padding:18px;color:#111;background:white;margin:10px;border-radius:10px}.fallback a{color:#1d4ed8}
+  @media(max-width:800px){
+    header{padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top))}
+    h1{font-size:16px}.sub{font-size:11px}
+    .bar{top:48px;padding:7px 8px;gap:6px}
+    button,a.open,select{font-size:13px;padding:8px 9px}
+    .layout{display:block;min-height:calc(100vh - 92px)}
+    nav{display:none;grid-template-columns:1fr 1fr;gap:6px;max-height:42vh;overflow:auto;border-right:0;border-bottom:1px solid #374151}
+    nav.open{display:grid}
+    nav h2{grid-column:1/-1;margin:8px 0 0}
+    nav button{font-size:13px;padding:9px}
+    .viewer{height:calc(100vh - 112px);min-height:520px}
+    .hint{font-size:11px}
+    .mapwrap{min-height:520px;padding:3px}
+    canvas{max-width:none;width:100%!important}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lightning Wizard UK Viewer</h1>
+  <div class="sub">Mobile-friendly UK crop from live LightningWizard GFS Europe imagery.</div>
+</header>
+<div class="bar">
+  <button class="primary" onclick="toggleMenu()">☰ Maps</button>
+  <button onclick="resetUK()">UK view</button>
+  <button onclick="stepFrame(-3)">◀ -3h</button>
+  <select id="frameSelect" onchange="setFrame(this.value)" title="Forecast hour"></select>
+  <button onclick="stepFrame(3)">+3h ▶</button>
+  <button id="loopBtn" onclick="toggleLoop()">▶ Loop 0-72h</button>
+  <button onclick="cropZoom(0.88)">Zoom +</button>
+  <button onclick="cropZoom(1.14)">Zoom -</button>
+  <a class="open" id="open" href="#" target="_blank" rel="noopener">Full image</a>
+</div>
+<div class="layout">
+<nav id="menu">
+  <h2>Instability / CAPE</h2>
+  <button data-p="cape">CAPE</button><button data-p="mucape">MU CAPE</button><button data-p="icape">ICAPE</button><button data-p="layer">Layer depth</button><button data-p="lapse">Lapse rates</button><button data-p="lapse2">Low-level lapse rates</button><button data-p="kili">K / lifted index</button>
+  <h2>Cloud depth / parcels</h2>
+  <button data-p="lfc">LFC</button><button data-p="mulfc">MU LFC</button><button data-p="el">Equilibrium level</button><button data-p="icon10">ICON 10</button>
+  <h2>Forcing / upper dynamics</h2>
+  <button data-p="omega">Omega / ascent</button><button data-p="pvort">PV / upper forcing</button><button data-p="pvort2">PV / secondary</button><button data-p="difadv">Differential advection</button>
+  <h2>Moisture / thermodynamics</h2>
+  <button data-p="thetae">Theta-e</button><button data-p="the700">700 hPa theta-e</button><button data-p="mixr">Mixing ratio</button><button data-p="mtv">Moisture transport vectors</button><button data-p="pw">Precipitable water</button>
+  <h2>Severe / impact checks</h2>
+  <button data-p="srh">Storm-relative helicity</button><button data-p="srhl">Low-level SRH</button><button data-p="stp">STP</button><button data-p="gusts">Convective gusts</button><button data-p="hail">Hail</button><button data-p="spout">Waterspout</button>
+</nav>
+<section class="viewer" id="viewer">
+  <div class="hint" id="title">Loading...</div>
+  <div class="mapwrap"><canvas id="ukCanvas" width="950" height="760"></canvas></div>
+  <div class="fallback" id="fallback">The source image did not load. Tap <a id="fallbackLink" target="_blank" rel="noopener">Open full image</a> or use Safari/Firefox.</div>
+</section>
+</div>
+<script>
+const baseImg='https://www.lightningwizard.com/maps/Europe/gfs_';
+let currentParam='pw';
+let currentFrame=0;
+const frames=[]; for(let h=0;h<=240;h+=3) frames.push(h);
+const names={cape:'CAPE',mucape:'MU CAPE',icape:'ICAPE',layer:'Layer depth',lfc:'LFC',mulfc:'MU LFC',el:'Equilibrium level',icon10:'ICON 10',omega:'Omega / ascent',pvort:'PV / upper forcing',pvort2:'PV / secondary',difadv:'Differential advection',kili:'K / lifted index',spout:'Waterspout',lapse:'Lapse rates',lapse2:'Low-level lapse rates',the700:'700 hPa theta-e',thetae:'Theta-e',mixr:'Mixing ratio',mtv:'Moisture transport vectors',gusts:'Convective gusts',stp:'STP',srh:'Storm-relative helicity',srhl:'Low-level SRH',pw:'Precipitable water',hail:'Hail'};
+
+// Source crop in image pixels. This is calibrated to the Lightning Wizard Europe PNG layout.
+// It captures Ireland, the UK, surrounding waters, and near-Continent context.
+let crop={x:140,y:145,w:470,h:420};
+let sourceImg=new Image();
+function pad(h){return String(Number(h));} // no zero-padding: LW early frames are eur0, eur3, eur6, eur9
+function suffix(){return '_eur'+pad(currentFrame)+'.png';}
+function imgUrl(p,cacheBust=true){return baseImg+p+suffix()+(cacheBust?'?t='+Date.now():'');}
+function directUrl(p){return baseImg+p+suffix();}
+function aniUrl(p){const all=['cape','mucape','icape','layer','lfc','mulfc','el','icon10','omega','pvort','pvort2','difadv','kili','spout','lapse','lapse2','the700','thetae','mixr','mtv','gusts','stp','srh','srhl','pw','hail']; const ordered=[p,...all.filter(x=>x!==p)]; return 'https://www.lightningwizard.com/maps/Europe/ani.html?0,gfs_,_eur'+pad(currentFrame)+'.png,'+ordered.join(',');}
+
+function latestGfsRunUTC(now=new Date()){
+  // Lightning Wizard GFS Europe generally updates twice daily from 00Z and 12Z.
+  // Allow a conservative processing lag before assuming the newest cycle is live.
+  const y=now.getUTCFullYear(), m=now.getUTCMonth(), d=now.getUTCDate(), h=now.getUTCHours();
+  if(h>=16) return new Date(Date.UTC(y,m,d,12,0,0));
+  if(h>=4) return new Date(Date.UTC(y,m,d,0,0,0));
+  return new Date(Date.UTC(y,m,d-1,12,0,0));
+}
+function fmtUTC(dt){
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dd=String(dt.getUTCDate()).padStart(2,'0');
+  const hh=String(dt.getUTCHours()).padStart(2,'0');
+  return days[dt.getUTCDay()]+' '+dd+' '+mons[dt.getUTCFullYear()?dt.getUTCMonth():0]+' '+dt.getUTCFullYear()+' '+hh+'Z';
+}
+function overlayInfo(){
+  const run=latestGfsRunUTC();
+  const valid=new Date(run.getTime()+currentFrame*3600*1000);
+  const runHour=String(run.getUTCHours()).padStart(2,'0')+'Z';
+  return {
+    runLabel:'GFS '+runHour+' run',
+    validLabel:'Valid: '+fmtUTC(valid),
+    frameLabel:'Forecast hour: +'+currentFrame+'h',
+    paramLabel:'Parameter: '+(names[currentParam]||currentParam)
+  };
+}
+function drawStamp(ctx, cssW, cssH){
+  const info=overlayInfo();
+  const lines=[info.runLabel, info.validLabel, info.frameLabel, info.paramLabel];
+  ctx.save();
+  ctx.font='bold 14px Arial';
+  let w=0; lines.forEach(t=>{w=Math.max(w,ctx.measureText(t).width);});
+  const boxW=Math.min(cssW-24, Math.max(230, w+26));
+  const boxH=92, x=12, y=12;
+  ctx.fillStyle='rgba(15,23,42,.82)';
+  ctx.strokeStyle='rgba(255,255,255,.55)';
+  ctx.lineWidth=1;
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,boxW,boxH,10);ctx.fill();ctx.stroke();}
+  else {ctx.fillRect(x,y,boxW,boxH);ctx.strokeRect(x,y,boxW,boxH);}
+  ctx.fillStyle='#ffffff'; ctx.font='bold 14px Arial'; ctx.fillText(lines[0],x+13,y+22);
+  ctx.font='13px Arial'; ctx.fillText(lines[1],x+13,y+43); ctx.fillText(lines[2],x+13,y+62); ctx.fillText(lines[3],x+13,y+81);
+  ctx.restore();
+}
+function drawUK(){
+  const c=document.getElementById('ukCanvas'),ctx=c.getContext('2d');
+  const ratio=window.devicePixelRatio||1;
+  const cssW=Math.min(1050,Math.max(720,document.getElementById('viewer').clientWidth-28));
+  const cssH=Math.round(cssW*0.80);
+  c.style.width=cssW+'px'; c.style.height=cssH+'px'; c.width=Math.round(cssW*ratio); c.height=Math.round(cssH*ratio); ctx.setTransform(ratio,0,0,ratio,0,0);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cssW,cssH);
+  if(!sourceImg.complete || !sourceImg.naturalWidth){return;}
+  const sx=Math.max(0,Math.min(crop.x,sourceImg.naturalWidth-10));
+  const sy=Math.max(0,Math.min(crop.y,sourceImg.naturalHeight-10));
+  const sw=Math.min(crop.w,sourceImg.naturalWidth-sx);
+  const sh=Math.min(crop.h,sourceImg.naturalHeight-sy);
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(sourceImg,sx,sy,sw,sh,0,0,cssW,cssH);
+  // UK focus frame and persistent timestamp overlay. This is drawn onto the visible canvas,
+  // so it remains visible even when the source image timestamp is cropped/zoomed out.
+  ctx.strokeStyle='rgba(15,23,42,.55)'; ctx.lineWidth=2; ctx.strokeRect(1,1,cssW-2,cssH-2);
+  drawStamp(ctx, cssW, cssH);
+}
+function refresh(){
+  const p=currentParam, u=imgUrl(p,true), direct=directUrl(p);
+  document.getElementById('title').textContent=names[p]+' - UK-only map crop - forecast hour +'+currentFrame;
+  document.getElementById('open').href=direct; document.getElementById('ani').href=aniUrl(p); document.getElementById('fallbackLink').href=direct;
+  document.getElementById('frameSelect').value=String(currentFrame);
+  document.getElementById('fallback').style.display='none';
+  sourceImg=new Image();
+  sourceImg.onload=()=>drawUK();
+  sourceImg.onerror=()=>{document.getElementById('fallback').style.display='block';drawUK();};
+  sourceImg.src=u;
+  document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+}
+function setParam(p){currentParam=p;refresh();}
+function setFrame(h){currentFrame=Number(h);refresh();}
+function stepFrame(delta){const next=currentFrame+delta;if(next<frames[0]||next>frames[frames.length-1]) return;currentFrame=next;refresh();}
+function resetUK(){crop={x:140,y:145,w:470,h:420};drawUK();}
+function pan(dx,dy){crop.x+=dx;crop.y+=dy;drawUK();}
+function cropZoom(f){const cx=crop.x+crop.w/2,cy=crop.y+crop.h/2;crop.w*=f;crop.h*=f;crop.x=cx-crop.w/2;crop.y=cy-crop.h/2;drawUK();}
+
+let loopTimer=null;
+function toggleLoop(){
+  const btn=document.getElementById('loopBtn');
+  if(loopTimer){
+    clearInterval(loopTimer);
+    loopTimer=null;
+    btn.textContent='▶ Loop';
+    btn.classList.remove('active');
+    return;
+  }
+  btn.textContent='■ Stop';
+  btn.classList.add('active');
+  loopTimer=setInterval(()=>{
+    let idx=frames.indexOf(currentFrame);
+    idx=idx+1;
+    const maxLoopIdx=frames.indexOf(72);
+    if(idx>maxLoopIdx){idx=0;}
+    currentFrame=frames[idx];
+    refresh();
+  },700);
+}
+
+function toggleMenu(){
+  const nav=document.getElementById('menu');
+  nav.classList.toggle('open');
+  setTimeout(drawUK,50);
+}
+
+function initFrames(){const sel=document.getElementById('frameSelect');frames.forEach(h=>{const o=document.createElement('option');o.value=String(h);o.textContent='+'+h+'h';sel.appendChild(o);});}
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>setParam(b.dataset.p));
+window.addEventListener('resize',()=>drawUK());
+initFrames();setParam('pw');
+</script>
+</body>
+</html>
