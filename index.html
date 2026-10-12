@@ -1,385 +1,202 @@
 <!doctype html>
-
 <html lang="en">
-
 <head>
-
 <meta charset="utf-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
-<title>Lightning Wizard UK Viewer</title>
-
+<meta name="theme-color" content="#0b141d">
+<meta name="description" content="Lightning Wizard Convective Analysis: UK-centred GFS convective charts, with grouped field controls and three-hour forecast navigation.">
+<title>Lightning Wizard Convective Analysis</title>
 <style>
-
-  :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#0b1220;color:#e5e7eb}
-
-  *{box-sizing:border-box}
-
-  body{margin:0;background:#0b1220;color:#e5e7eb}
-
-  header{display:none}
-
-  h1{font-size:18px;margin:0 0 2px}.sub{font-size:12px;color:#cbd5e1}
-
-  .bar{display:flex;gap:7px;overflow-x:auto;padding:8px 10px;background:#0f172a;border-bottom:1px solid #253044;position:sticky;top:0;z-index:29;align-items:center}
-
-  button,a.open,select{white-space:nowrap;border:1px solid #475569;border-radius:10px;background:#1e293b;color:#e5e7eb;padding:9px 11px;font-size:14px;text-decoration:none}
-
-  button.active,.primary{background:#2563eb;border-color:#60a5fa;font-weight:700}
-
-  .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 50px)}
-
-  nav{background:#111827;border-right:1px solid #374151;padding:10px;overflow:auto}
-
-  nav h2{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin:12px 0 6px}
-
-  nav button{display:block;width:100%;text-align:left;margin:4px 0;padding:8px;font-size:13px}
-
-  .viewer{overflow:auto;background:#dbe3ee;position:relative;-webkit-overflow-scrolling:touch}
-
-  .hint{position:sticky;top:0;z-index:12;background:rgba(15,23,42,.9);color:#fff;padding:7px 10px;font-size:13px}
-
-  .mapwrap{background:#eef3f8;margin:0;display:flex;justify-content:center;align-items:flex-start;min-height:calc(100vh - 90px);padding:8px}
-
-  .mapbox{position:relative;width:min(1050px,100%);aspect-ratio:1.25/1;background:white;overflow:hidden;border:1px solid #94a3b8;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-
-  #mapImg{position:absolute;left:0;top:0;width:1500px;height:auto;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none}
-
-  .stamp{position:absolute;top:12px;left:12px;background:rgba(15,23,42,.84);border:1px solid rgba(255,255,255,.55);border-radius:10px;color:#fff;padding:10px 12px;font-size:13px;line-height:1.35;z-index:5;min-width:245px}
-
-  .stamp b{font-size:14px}
-
-  .fallback{display:none;position:absolute;left:16px;right:16px;top:120px;padding:14px;color:#111;background:white;border-radius:10px;z-index:6}.fallback a{color:#1d4ed8}
-
-  @media(max-width:800px){
-
-    header{display:none}
-
-    .bar{top:0;padding:8px 8px;gap:6px}
-
-    button,a.open,select{font-size:14px;padding:9px 10px}
-
-    .layout{display:block}
-
-    nav{display:none;grid-template-columns:1fr 1fr;gap:6px;max-height:42vh;overflow:auto;border-right:0;border-bottom:1px solid #374151}
-
-    nav.open{display:grid}
-
-    nav h2{grid-column:1/-1;margin:8px 0 0}
-
-    nav button{font-size:13px;padding:9px}
-
-    .viewer{
-
-      height:calc(100vh - 60px);
-
-      min-height:0;
-
-    }
-
-    .mapwrap{
-
-      min-height:calc(100vh - 110px);
-
-      padding:4px;
-
-    }
-
-    .mapbox{
-
-      width:100%;
-
-      height:calc(100vh - 120px);
-
-      min-height:0;
-
-      aspect-ratio:auto;
-
-    }
-
-    #mapImg{width:1450px}
-
-    .stamp{font-size:12px;min-width:230px}
-
-  }
-
+:root{font-family:Arial,Helvetica,sans-serif;color-scheme:dark;--bg:#0b141d;--panel:#101e29;--control:#162732;--text:#e3edf3;--muted:#8ca2b1;--line:#2b414e;--accent:#9ee0d0;background:var(--bg);color:var(--text)}
+*{box-sizing:border-box}body{margin:0}button,select,a{touch-action:manipulation}button,select,.button{font:inherit;font-size:13px;color:var(--text);border:1px solid var(--line);border-radius:5px;background:var(--control);min-height:34px;padding:6px 10px;white-space:nowrap}button,.button{cursor:pointer}button:hover,.button:hover{border-color:#6d969a;background:#203945}button:disabled{opacity:.4;cursor:default}button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible,.mapbox:focus-visible{outline:2px solid var(--accent);outline-offset:3px}a{color:var(--accent)}.button{display:inline-flex;align-items:center;text-decoration:none}button.active,.primary{background:#1e403f;border-color:#5d9d91;color:#c5f5e6}svg{display:block}h1,h2,p{margin:0}.app{height:100vh;height:100dvh;min-height:560px;display:flex;flex-direction:column;max-width:2100px;margin:auto;padding:0 18px;padding-bottom:env(safe-area-inset-bottom)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;border-bottom:1px solid var(--line);flex-shrink:0}.brand{display:flex;align-items:center;gap:11px}.brand svg{color:var(--accent);width:23px;height:29px;flex-shrink:0}h1{font-size:20px;font-weight:500;letter-spacing:-.45px}h1 span{color:#afc4cd}.source-link{font-size:12px;text-decoration:none;color:var(--muted);white-space:nowrap}.source-link b{font-weight:500;color:var(--accent)}
+.selectors{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;padding:9px 0 8px;flex-shrink:0}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-left:1px}.field select{width:100%;min-width:0;cursor:pointer;text-overflow:ellipsis}.field.selected .field-label{color:var(--accent)}.field.selected select{background:#183332;border-color:#5e9589;color:#d1f1e7}.mobile-field{display:none}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 8px;flex-shrink:0}.transport,.map-tools,.pan-tools{display:flex;gap:5px;align-items:center;min-width:0}#frameSelect{width:101px;font-variant-numeric:tabular-nums}.tool-label{font-size:10px;letter-spacing:.9px;color:var(--muted);margin-right:4px}.icon-button{min-width:34px;padding:5px 8px;text-align:center;font-size:18px;line-height:1}.separator{height:22px;width:1px;background:var(--line);margin:0 4px}.pan-tools button{min-width:28px;padding:4px 6px}.pan-tools{gap:3px}#loopBtn{min-width:113px}.statusbar{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--panel);border:1px solid var(--line);border-radius:6px 6px 0 0;min-height:32px;font-size:12px;flex-shrink:0}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}#status{flex:1;min-width:0}.statusbar[data-state=ready] .status-dot{background:var(--accent)}.statusbar[data-state=error] .status-dot{background:#f2ab88}.view-label{color:var(--muted);white-space:nowrap;font-size:11px}
+.chart{display:flex;flex-direction:column;flex:1;min-height:285px;overflow:hidden;border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;background:white}.chart-heading{height:32px;min-height:32px;position:relative;overflow:hidden;background:white;border-bottom:1px solid #d9e0e3;color:#27353d}.clip-img{position:absolute;max-width:none;user-select:none;pointer-events:none}.mapbox{flex:1;min-height:250px;position:relative;overflow:hidden;background:#f2f5f7;touch-action:none;cursor:grab;isolation:isolate}.mapbox.dragging{cursor:grabbing}#mapImg{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;visibility:hidden;will-change:transform}.mapbox[data-state=loading] #mapImg{opacity:.25}.mapbox[data-state=error] #mapImg{visibility:hidden!important}.source-stamp{position:absolute;left:12px;top:12px;padding:7px 8px 6px;background:white;border:1px solid #bdcbd1;border-radius:5px;box-shadow:0 2px 8px #16313c16;cursor:default;color:#324851;z-index:2}.source-stamp figcaption,.legend-panel summary{font:10px Arial,Helvetica,sans-serif;letter-spacing:.7px;text-transform:uppercase}.source-stamp{margin:0}.stamp-clip{position:relative;width:164px;height:83px;overflow:hidden;margin-top:3px}.legend-panel{position:absolute;right:12px;top:50%;transform:translateY(-50%);padding:6px;background:white;border:1px solid #bdcbd1;border-radius:5px;cursor:default;color:#324851;z-index:2}.legend-panel summary{cursor:pointer;text-align:center;list-style:none;padding:3px}.legend-panel summary::-webkit-details-marker{display:none}.legend-panel summary:after{content:' −'}.legend-panel:not([open]) summary:after{content:' +'}.legend-clip{position:relative;overflow:hidden}.source-detail{visibility:hidden}.mapbox[data-state=loading] .source-detail{opacity:.3}.mapbox[data-state=error] .source-detail{visibility:hidden!important}.map-credit{position:absolute;bottom:9px;left:12px;background:#fffffff0;border:1px solid #cbd5dc;border-radius:4px;color:#465e6a;padding:4px 7px;font-size:10px;pointer-events:none;z-index:2}.notice{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);max-width:calc(100% - 34px);width:max-content;background:#10212bef;color:#e3edf3;border:1px solid #688793;border-radius:6px;padding:12px 16px;font-size:13px;line-height:1.5;text-align:center;cursor:default;z-index:3}.notice[hidden]{display:none}.notice a{display:inline-block;margin-left:4px}footer{display:flex;justify-content:space-between;gap:12px;padding:7px 0 8px;color:var(--muted);font-size:10px;line-height:1.3;flex-shrink:0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1100px){.app{padding-left:12px;padding-right:12px}.pan-tools,.tool-label{display:none}.toolbar{gap:5px}.transport,.map-tools{gap:4px}button,.button{padding-left:8px;padding-right:8px}.selectors{gap:7px}.field-label{font-size:9px;letter-spacing:.45px}}
+@media(max-width:760px){.app{padding-left:7px;padding-right:7px}.topbar{min-height:49px}.brand{gap:8px}h1{font-size:16px;letter-spacing:-.2px}.source-link{display:none}.selectors{display:block;padding:7px 0}.desktop-field{display:none}.mobile-field{display:block}.mobile-field select{width:100%;height:35px;font-size:14px}.toolbar{flex-wrap:wrap;gap:5px;padding-bottom:7px}.transport,.map-tools{width:100%}.transport{gap:5px}.map-tools{gap:4px}.transport button,.transport select{flex:1}.transport #loopBtn{flex:1.3;min-width:103px}.transport #frameSelect{min-width:86px}.map-tools .button{margin-left:auto}.map-tools button,.map-tools .button{min-height:31px;font-size:12px}.separator{margin:0 1px}.statusbar{padding:6px 8px;font-size:11px;min-height:29px}.view-label{display:none}.chart-heading{height:24px;min-height:24px}.source-stamp{left:8px;top:8px;padding:5px 6px}.source-stamp figcaption{font-size:9px}.stamp-clip{width:151px;height:76px}.legend-panel{right:7px;padding:4px}.map-credit{left:7px;bottom:7px;font-size:9px}footer{font-size:9px;padding:6px 1px}.desktop-hint{display:none}.notice{font-size:12px;padding:10px 12px}}
+@media(max-width:380px){h1{font-size:15px}.brand svg{width:19px}.transport{gap:3px}.transport button{padding:6px;font-size:12px}.map-tools{gap:3px}.map-tools button,.map-tools .button{padding-left:6px;padding-right:6px}.map-tools .separator{display:none}.refresh-label{display:none}#reloadBtn{min-width:31px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
-
 </head>
-
 <body>
-
-<div class="bar">
-
-  <button class="primary" onclick="toggleMenu()">☰ Maps</button>
-
-  <button onclick="resetUK()">UK view</button>
-
-  <button onclick="stepFrame(-3)">◀ -3h</button>
-
-  <select id="frameSelect" onchange="setFrame(this.value)" title="Forecast hour"></select>
-
-  <button onclick="stepFrame(3)">+3h ▶</button>
-
-  <button id="loopBtn" onclick="toggleLoop()">▶ Loop 0-72h</button>
-
-  <button onclick="zoom(1.12)">Zoom +</button>
-
-  <button onclick="zoom(0.89)">Zoom -</button>
-
-  <button onclick="pan(-30,0)">◀</button><button onclick="pan(30,0)">▶</button><button onclick="pan(0,-30)">▲</button><button onclick="pan(0,30)">▼</button>
-
-  <a class="open" id="open" href="#" target="_blank" rel="noopener">Full image</a>
-
+<div class="app">
+<header class="topbar">
+  <div class="brand"><svg viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 2 3 17h8l-1 11 11-16h-8z"/></svg><h1>Lightning Wizard <span>Convective Analysis</span></h1></div>
+  <a class="source-link" href="https://www.lightningwizard.com/maps/" target="_blank" rel="noopener noreferrer"><b>GFS</b> · Charts by LightningWizard.com ↗</a>
+</header>
+<nav class="selectors" id="selectors" aria-label="Convective chart parameters"></nav>
+<div class="toolbar" role="group" aria-label="Forecast and map controls">
+  <div class="transport"><span class="tool-label">Forecast</span><button id="prevBtn" title="Previous forecast (left arrow)">◀ −3h</button><label class="sr-only" for="frameSelect">Forecast lead time</label><select id="frameSelect"></select><button id="nextBtn" title="Next forecast (right arrow)">+3h ▶</button><button id="loopBtn" aria-pressed="false">▶ Loop 0–72h</button></div>
+  <div class="map-tools"><button id="ukBtn" class="primary" aria-pressed="true" title="Centre the United Kingdom">UK view</button><button id="europeBtn" aria-pressed="false" title="Show the complete source chart">Europe</button><span class="separator" aria-hidden="true"></span><button class="icon-button" id="zoomOut" aria-label="Zoom out">−</button><button class="icon-button" id="zoomIn" aria-label="Zoom in">+</button><div class="pan-tools" aria-label="Pan map"><button data-pan="-30,0" aria-label="Move map left">←</button><button data-pan="30,0" aria-label="Move map right">→</button><button data-pan="0,-30" aria-label="Move map up">↑</button><button data-pan="0,30" aria-label="Move map down">↓</button></div><button id="reloadBtn" aria-label="Refresh source image" title="Reload the selected source image">↻ <span class="refresh-label">Refresh</span></button><a class="button" id="open" href="https://www.lightningwizard.com/maps/" target="_blank" rel="noopener noreferrer">Full image ↗</a></div>
 </div>
-
-<div class="layout">
-
-<nav id="menu">
-
-  <h2>Instability / CAPE</h2>
-
-  <button data-p="cape">CAPE</button><button data-p="mucape">MU CAPE</button><button data-p="icape">ICAPE</button><button data-p="layer">Layer depth</button><button data-p="lapse">Lapse rates</button><button data-p="lapse2">Low-level lapse rates</button><button data-p="kili">K / lifted index</button>
-
-  <h2>Cloud depth / parcels</h2>
-
-  <button data-p="lfc">LFC</button><button data-p="mulfc">MU LFC</button><button data-p="el">Equilibrium level</button><button data-p="icon10">ICON 10</button>
-
-  <h2>Forcing / upper dynamics</h2>
-
-  <button data-p="omega">Omega / ascent</button><button data-p="pvort">PV / upper forcing</button><button data-p="pvort2">PV / secondary</button><button data-p="difadv">Differential advection</button>
-
-  <h2>Moisture / thermodynamics</h2>
-
-  <button data-p="thetae">Theta-e</button><button data-p="the700">700 hPa theta-e</button><button data-p="mixr">Mixing ratio</button><button data-p="mtv">Moisture transport vectors</button><button data-p="pw">Precipitable water</button>
-
-  <h2>Severe / impact checks</h2>
-
-  <button data-p="srh">Storm-relative helicity</button><button data-p="srhl">Low-level SRH</button><button data-p="stp">STP</button><button data-p="gusts">Convective gusts</button><button data-p="hail">Hail</button><button data-p="spout">Waterspout</button>
-
-</nav>
-
-<section class="viewer" id="viewer">
-
-  <div class="hint" id="title">Loading...</div>
-
-  <div class="mapwrap">
-
-    <div class="mapbox" id="mapbox">
-
-      <img id="mapImg" alt="Lightning Wizard map">
-
-      <div class="stamp" id="stamp"></div>
-
-      <div class="fallback" id="fallback">The source image did not load. Tap <a id="fallbackLink" target="_blank" rel="noopener">Full image</a>.</div>
-
-    </div>
-
+<div class="statusbar" id="statusbar" data-state="loading"><span class="status-dot" aria-hidden="true"></span><p id="status" role="status" aria-live="polite">Loading chart…</p><span class="view-label" id="viewLabel">UK-centred view</span></div>
+<main class="chart" aria-label="Convective analysis chart">
+  <div class="chart-heading" id="chartHeading"><img class="clip-img" id="headingImg" alt="Original source chart title and units" hidden></div>
+  <div class="mapbox" id="mapbox" tabindex="0" aria-label="Weather map. Drag to pan; use zoom buttons or mouse wheel. U resets the UK view." data-state="loading" aria-busy="true">
+    <img id="mapImg" alt="Loading convective weather chart" draggable="false">
+    <figure class="source-stamp source-detail" id="sourceStamp"><figcaption>Source valid time · UTC</figcaption><div class="stamp-clip" id="stampClip"><img class="clip-img" id="stampImg" alt="Valid date, UTC time and forecast lead printed on the original source image"></div></figure>
+    <details class="legend-panel source-detail" id="legendPanel" open><summary title="Show or hide the original chart colour scale">Key</summary><div class="legend-clip" id="legendClip"><img class="clip-img" id="legendImg" alt="Original source chart colour scale, unchanged"></div></details>
+    <div class="map-credit">LightningWizard.com · GFS</div>
+    <div class="notice" id="notice">Loading source chart…</div>
   </div>
-
-</section>
-
+</main>
+<footer><span>Check the source valid time. Full image includes all units, keys and chart notes.</span><span class="desktop-hint">Drag to pan · Scroll to zoom · ← / → step · U centres UK</span></footer>
 </div>
-
+<noscript>This viewer needs JavaScript. Open the <a href="https://www.lightningwizard.com/maps/">original Lightning Wizard charts</a>.</noscript>
 <script>
-
-const baseImg='https://www.lightningwizard.com/maps/Europe/gfs_';
-
-let currentParam=localStorage.getItem('lw_param') || 'pw';
-
-let currentFrame=Number(localStorage.getItem('lw_frame') || 0);
-
-const frames=[]; for(let h=0;h<=240;h+=3) frames.push(h);
-
-const names={cape:'CAPE',mucape:'MU CAPE',icape:'ICAPE',layer:'Layer depth',lfc:'LFC',mulfc:'MU LFC',el:'Equilibrium level',icon10:'ICON 10',omega:'Omega / ascent',pvort:'PV / upper forcing',pvort2:'PV / secondary',difadv:'Differential advection',kili:'K / lifted index',spout:'Waterspout',lapse:'Lapse rates',lapse2:'Low-level lapse rates',the700:'700 hPa theta-e',thetae:'Theta-e',mixr:'Mixing ratio',mtv:'Moisture transport vectors',gusts:'Convective gusts',stp:'STP',srh:'Storm-relative helicity',srhl:'Low-level SRH',pw:'Precipitable water',hail:'Hail'};
-
-let view={scale:1.58,x:-205,y:-165};
-
-function pad(h){return String(Number(h));}
-
-function suffix(){return '_eur'+pad(currentFrame)+'.png';}
-
-function directUrl(p){return baseImg+p+suffix();}
-
-function imgUrl(p){return directUrl(p);}
-
-function latestGfsRunUTC(now=new Date()){
-
-  const y=now.getUTCFullYear(), m=now.getUTCMonth(), d=now.getUTCDate(), h=now.getUTCHours();
-
-  if(h>=16) return new Date(Date.UTC(y,m,d,12,0,0));
-
-  if(h>=4) return new Date(Date.UTC(y,m,d,0,0,0));
-
-  return new Date(Date.UTC(y,m,d-1,12,0,0));
-
-}
-
-function fmtUTC(dt){
-
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  const dd=String(dt.getUTCDate()).padStart(2,'0');
-
-  const hh=String(dt.getUTCHours()).padStart(2,'0');
-
-  return days[dt.getUTCDay()]+' '+dd+' '+mons[dt.getUTCMonth()]+' '+dt.getUTCFullYear()+' '+hh+'Z';
-
-}
-
-function updateStamp(){
-
-  const run=latestGfsRunUTC();
-
-  const valid=new Date(run.getTime()+currentFrame*3600*1000);
-
-  const runHour=String(run.getUTCHours()).padStart(2,'0')+'Z';
-
-  document.getElementById('stamp').innerHTML='<b>GFS '+runHour+' run</b><br>Valid: '+fmtUTC(valid)+'<br>Forecast hour: +'+currentFrame+'h<br>Parameter: '+(names[currentParam]||currentParam);
-
-}
-
-function applyView(){
-
-  const img=document.getElementById('mapImg');
-
-  img.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')';
-
-}
-
-function refresh(){
-
-  const p=currentParam, direct=directUrl(p);
-
-  localStorage.setItem('lw_param',p);
-
-  localStorage.setItem('lw_frame',String(currentFrame));
-
-  document.getElementById('title').textContent=(names[p]||p)+' - UK-only map crop - forecast hour +'+currentFrame;
-
-  document.getElementById('open').href=direct;
-
-  document.getElementById('fallbackLink').href=direct;
-
-  document.getElementById('frameSelect').value=String(currentFrame);
-
-  document.getElementById('fallback').style.display='none';
-
-  const img=document.getElementById('mapImg');
-
-  img.onload=()=>{document.getElementById('fallback').style.display='none';};
-
-  img.onerror=()=>{document.getElementById('fallback').style.display='block';};
-
-  img.src=imgUrl(p);
-
-  applyView();
-
-  updateStamp();
-
-  document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
-
-}
-
-function setParam(p){currentParam=p;refresh(); if(window.innerWidth<=800){document.getElementById('menu').classList.remove('open');}}
-
-function setFrame(h){currentFrame=Number(h);refresh();}
-
-function stepFrame(delta){const next=currentFrame+delta;if(next<frames[0]||next>frames[frames.length-1]) return;currentFrame=next;refresh();}
-
-function resetUK(){view={scale:1.58,x:-205,y:-165};applyView();}
-
-function pan(dx,dy){view.x+=dx;view.y+=dy;applyView();}
-
-function zoom(f){
-
-  const box=document.getElementById('mapbox');
-
-  const cx=box.clientWidth/2,cy=box.clientHeight/2;
-
-  view.x=cx-(cx-view.x)*f;
-
-  view.y=cy-(cy-view.y)*f;
-
-  view.scale*=f;
-
-  applyView();
-
-}
-
-let loopTimer=null;
-
-function toggleLoop(){
-
-  const btn=document.getElementById('loopBtn');
-
-  if(loopTimer){
-
-    clearInterval(loopTimer);
-
-    loopTimer=null;
-
-    btn.textContent='▶ Loop 0-72h';
-
-    btn.classList.remove('active');
-
-    return;
-
-  }
-
-  btn.textContent='■ Stop';
-
-  btn.classList.add('active');
-
-  loopTimer=setInterval(()=>{
-
-    let idx=frames.indexOf(currentFrame);
-
-    idx=idx+1;
-
-    const maxLoopIdx=frames.indexOf(72);
-
-    if(idx>maxLoopIdx){idx=0;}
-
-    currentFrame=frames[idx];
-
-    refresh();
-
-  },700);
-
-}
-
-function toggleMenu(){document.getElementById('menu').classList.toggle('open');}
-
-function initFrames(){
-
-  const sel=document.getElementById('frameSelect');
-
-  frames.forEach(h=>{
-
-    const o=document.createElement('option');
-
-    o.value=String(h);
-
-    o.textContent='+'+h+'h';
-
-    sel.appendChild(o);
-
+'use strict';
+const $ = id => document.getElementById(id);
+const groups = [
+  ['Instability / CAPE', [['cape','CAPE'],['mucape','MU CAPE'],['icape','ICAPE'],['layer','Layer depth'],['lapse','Lapse rates'],['lapse2','Low-level lapse rates'],['kili','K / lifted index']]],
+  ['Cloud depth / parcels', [['lfc','LFC'],['mulfc','MU LFC'],['el','Equilibrium level'],['icon10','ICON 10']]],
+  ['Forcing / upper dynamics', [['omega','Omega / ascent'],['pvort','PV / upper forcing'],['pvort2','PV / secondary'],['difadv','Differential advection']]],
+  ['Moisture / thermodynamics', [['thetae','Theta-e'],['the700','700 hPa theta-e'],['mixr','Mixing ratio'],['mtv','Moisture transport vectors'],['pw','Precipitable water']]],
+  ['Severe / impact checks', [['srh','Storm-relative helicity'],['srhl','SRH (left-mover)'],['stp','STP'],['gusts','Convective gusts'],['hail','Hail'],['spout','Waterspout']]]
+];
+const names = Object.fromEntries(groups.flatMap(group => group[1]));
+const frames = Array.from({length:81}, (_, i) => i * 3);
+const storage = {get(key){try{return localStorage.getItem(key);}catch{return null;}},set(key,value){try{localStorage.setItem(key,String(value));}catch{/* Storage may be disabled; the viewer still works. */}}};
+let currentParam = storage.get('lw_param') || 'cape';
+if (!Object.hasOwn(names,currentParam)) currentParam = 'cape';
+let currentFrame = Number(storage.get('lw_frame') || 0);
+if (!frames.includes(currentFrame)) currentFrame = 0;
+const box = $('mapbox');
+let imageSize = {width:1000,height:750};
+// Normalised centre and extent of the British Isles in Lightning Wizard's Europe raster.
+// These are source-image coordinates, not fixed offsets in a particular browser viewport.
+const UK = {x:0.282,y:0.420,width:0.28,height:0.40};
+let view = {scale:1,x:0,y:0,mode:'uk'};
+let previousBox = {width:0,height:0};
+let requestId = 0, cancelPending = null, loaded = null, playing = false, loopTimer = null, loopVersion = 0;
+let refreshVersion = '';
+const sourceURL = (p,h) => 'https://www.lightningwizard.com/maps/Europe/gfs_' + p + '_eur' + Number(h) + '.png';
+const lead = h => 'T+' + String(h).padStart(3,'0') + 'h';
+function makeOption(value,label){const option=document.createElement('option');option.value=value;option.textContent=label;return option;}
+function initControls(){
+  groups.forEach(([label,items],i)=>{
+    const field=document.createElement('label');field.className='field desktop-field';
+    const text=document.createElement('span');text.className='field-label';text.textContent=label;
+    const select=document.createElement('select');select.id='group'+i;select.setAttribute('aria-label',label);
+    select.append(makeOption('','Choose field…'));
+    items.forEach(([p,name])=>select.append(makeOption(p,name)));
+    select.addEventListener('change',()=>{if(select.value)setParam(select.value);});
+    field.append(text,select);$('selectors').append(field);
   });
-
+  const field=document.createElement('label');field.className='field mobile-field';
+  const text=document.createElement('span');text.className='sr-only';text.textContent='Convective parameter';
+  const select=document.createElement('select');select.id='paramSelect';
+  groups.forEach(([label,items])=>{const group=document.createElement('optgroup');group.label=label;items.forEach(([p,name])=>group.append(makeOption(p,name)));select.append(group);});
+  select.addEventListener('change',()=>setParam(select.value));field.append(text,select);$('selectors').append(field);
+  frames.forEach(h=>$('frameSelect').append(makeOption(h,lead(h))));
 }
-
-document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>setParam(b.dataset.p));
-
-initFrames();
-
-refresh();
-
+function syncControls(){
+  document.querySelectorAll('.desktop-field select').forEach(select=>{const active=Array.from(select.options).some(o=>o.value===currentParam);select.value=active?currentParam:'';select.parentElement.classList.toggle('selected',active);});
+  $('paramSelect').value=currentParam;$('frameSelect').value=String(currentFrame);
+  $('prevBtn').disabled=currentFrame===0;$('nextBtn').disabled=currentFrame===240;
+  storage.set('lw_param',currentParam);storage.set('lw_frame',currentFrame);
+}
+function applyView(){
+  $('mapImg').style.transform=`translate(${view.x}px,${view.y}px) scale(${view.scale})`;
+  $('ukBtn').setAttribute('aria-pressed',String(view.mode==='uk'));$('europeBtn').setAttribute('aria-pressed',String(view.mode==='europe'));
+  $('ukBtn').classList.toggle('primary',view.mode==='uk');$('europeBtn').classList.toggle('primary',view.mode==='europe');
+  $('viewLabel').textContent=view.mode==='uk'?'UK-centred view':view.mode==='europe'?'Full Europe chart':'Custom view';
+  // In Europe mode the original timestamp and legend are already visible on the full image.
+  for(const element of document.querySelectorAll('.source-detail'))element.style.visibility=loaded&&view.mode!=='europe'?'visible':'hidden';
+}
+function fitView(mode='uk'){
+  const w=box.clientWidth,h=box.clientHeight,iw=imageSize.width,ih=imageSize.height;
+  if(!w||!h)return;
+  view.mode=mode;
+  if(mode==='europe'){view.scale=Math.min((w-16)/iw,(h-16)/ih);view.x=(w-iw*view.scale)/2;view.y=(h-ih*view.scale)/2;}
+  else{view.scale=Math.min((w-48)/(iw*UK.width),Math.max(100,h-100)/(ih*UK.height));view.x=w/2-iw*UK.x*view.scale;view.y=h/2-ih*UK.y*view.scale;}
+  previousBox={width:w,height:h};applyView();
+}
+function zoomAt(f,x=box.clientWidth/2,y=box.clientHeight/2){
+  const next=Math.max(.2,Math.min(7,view.scale*f));f=next/view.scale;
+  view.x=x-(x-view.x)*f;view.y=y-(y-view.y)*f;view.scale=next;view.mode='custom';applyView();
+}
+function pan(dx,dy){view.x+=dx;view.y+=dy;view.mode='custom';applyView();}
+function positionClip(img,rect,scale){img.style.width=(imageSize.width*scale)+'px';img.style.height=(imageSize.height*scale)+'px';img.style.left=(-rect.x*imageSize.width*scale)+'px';img.style.top=(-rect.y*imageSize.height*scale)+'px';}
+function layoutSourceClips(){
+  if(!loaded)return;
+  // Render the source's own lettering and scale; do not infer dates from the clock or re-label units.
+  const stampScale=$('stampClip').clientWidth/(imageSize.width*.164);
+  positionClip($('stampImg'),{x:.010,y:.063},stampScale);
+  const legendScale=Math.min(.95,Math.max(.45,(box.clientHeight-72)/(imageSize.height*.67)));
+  $('legendClip').style.width=(imageSize.width*.087*legendScale)+'px';$('legendClip').style.height=(imageSize.height*.67*legendScale)+'px';
+  positionClip($('legendImg'),{x:.913,y:.18},legendScale);
+  const hs=Math.min(1,$('chartHeading').clientWidth/imageSize.width);
+  positionClip($('headingImg'),{x:0,y:0},hs);$('headingImg').style.left=(($('chartHeading').clientWidth-imageSize.width*hs)/2)+'px';
+}
+function setState(state,text){box.dataset.state=state;box.setAttribute('aria-busy',String(state==='loading'));$('statusbar').dataset.state=state;$('status').textContent=text;}
+function refresh(force=false){
+  if(cancelPending)cancelPending();
+  const id=++requestId,p=currentParam,h=currentFrame,direct=sourceURL(p,h);
+  if(force)refreshVersion=String(Date.now());
+  const url=direct+(refreshVersion?'?refresh='+refreshVersion:'');
+  syncControls();$('open').href=direct;
+  setState('loading','Loading '+names[p]+' · '+lead(h)+(loaded?' — previous chart shown':''));
+  $('notice').hidden=false;$('notice').textContent='Loading '+names[p]+' · '+lead(h)+'…';
+  return new Promise(resolve=>{
+    const loader=new Image();loader.decoding='async';let finished=false;
+    const cleanup=()=>{clearTimeout(timeout);loader.onload=null;loader.onerror=null;if(id===requestId)cancelPending=null;};
+    const fail=()=>{
+      if(finished||id!==requestId)return;finished=true;cleanup();loaded=null;stopLoop();
+      setState('error',names[p]+' · '+lead(h)+' — source image unavailable');
+      $('headingImg').hidden=true;applyView();$('notice').replaceChildren(document.createTextNode('This source chart could not be loaded. Try Refresh or another lead time. '));
+      const link=document.createElement('a');link.href=direct;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open source image ↗';$('notice').append(link);resolve(false);
+    };
+    const timeout=setTimeout(fail,20000);
+    cancelPending=()=>{if(!finished){finished=true;cleanup();resolve(false);}};
+    loader.onerror=fail;
+    loader.onload=()=>{
+      if(finished||id!==requestId)return;
+      if(!loader.naturalWidth||!loader.naturalHeight){fail();return;}
+      finished=true;cleanup();const changed=loader.naturalWidth!==imageSize.width||loader.naturalHeight!==imageSize.height;
+      imageSize={width:loader.naturalWidth,height:loader.naturalHeight};loaded={param:p,frame:h};
+      const map=$('mapImg');map.src=url;map.style.width=imageSize.width+'px';map.style.height=imageSize.height+'px';map.style.visibility='visible';map.alt=names[p]+' — GFS '+lead(h)+'; verify the original chart valid time';
+      for(const img of [$('headingImg'),$('stampImg'),$('legendImg')])img.src=url;
+      $('headingImg').hidden=false;layoutSourceClips();
+      if(changed||view.mode!=='custom')fitView(view.mode==='europe'?'europe':'uk');else applyView();
+      setState('ready',names[p]+' · GFS · '+lead(h));$('notice').hidden=true;resolve(true);
+    };
+    loader.src=url;
+  });
+}
+function setParam(p){if(!Object.hasOwn(names,p))return;stopLoop();currentParam=p;refresh();}
+function setFrame(h){h=Number(h);if(!frames.includes(h))return;stopLoop();currentFrame=h;refresh();}
+function stepFrame(delta){const next=currentFrame+delta;if(frames.includes(next))setFrame(next);}
+function stopLoop(){loopVersion++;playing=false;clearTimeout(loopTimer);loopTimer=null;$('loopBtn').textContent='▶ Loop 0–72h';$('loopBtn').classList.remove('active');$('loopBtn').setAttribute('aria-pressed','false');}
+async function advanceLoop(token){if(!playing||token!==loopVersion)return;currentFrame=currentFrame>=72?0:currentFrame+3;const ok=await refresh();if(token!==loopVersion)return;if(playing&&ok)loopTimer=setTimeout(()=>advanceLoop(token),800);else stopLoop();}
+function toggleLoop(){if(playing){stopLoop();return;}playing=true;$('loopBtn').textContent='■ Stop loop';$('loopBtn').classList.add('active');$('loopBtn').setAttribute('aria-pressed','true');advanceLoop(++loopVersion);}
+initControls();
+$('prevBtn').addEventListener('click',()=>stepFrame(-3));$('nextBtn').addEventListener('click',()=>stepFrame(3));$('frameSelect').addEventListener('change',e=>setFrame(e.target.value));$('loopBtn').addEventListener('click',toggleLoop);
+$('ukBtn').addEventListener('click',()=>fitView('uk'));$('europeBtn').addEventListener('click',()=>fitView('europe'));$('zoomIn').addEventListener('click',()=>zoomAt(1.08));$('zoomOut').addEventListener('click',()=>zoomAt(1/1.08));$('reloadBtn').addEventListener('click',()=>{stopLoop();refresh(true);});
+document.querySelectorAll('[data-pan]').forEach(btn=>btn.addEventListener('click',()=>pan(...btn.dataset.pan.split(',').map(Number))));
+box.addEventListener('wheel',event=>{event.preventDefault();const r=box.getBoundingClientRect();const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?box.clientHeight:1);zoomAt(Math.exp(-Math.max(-80,Math.min(80,delta))*.001),event.clientX-r.left,event.clientY-r.top);},{passive:false});
+const pointers=new Map();
+box.addEventListener('pointerdown',event=>{if(event.target.closest('a,button,details,figure')||event.button!==0)return;const r=box.getBoundingClientRect();pointers.set(event.pointerId,{x:event.clientX-r.left,y:event.clientY-r.top});box.setPointerCapture(event.pointerId);box.classList.add('dragging');});
+box.addEventListener('pointermove',event=>{
+  if(!pointers.has(event.pointerId))return;
+  const before=Array.from(pointers.values()),old=pointers.get(event.pointerId),r=box.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};pointers.set(event.pointerId,point);
+  if(pointers.size===1){pan(point.x-old.x,point.y-old.y);return;}
+  const after=Array.from(pointers.values()),distance=pts=>Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y),mid=pts=>({x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2});
+  const a=mid(before),b=mid(after),d=distance(before);if(d>0){zoomAt(distance(after)/d,a.x,a.y);pan(b.x-a.x,b.y-a.y);}
+});
+function endPointer(event){pointers.delete(event.pointerId);if(!pointers.size)box.classList.remove('dragging');}
+box.addEventListener('pointerup',endPointer);box.addEventListener('pointercancel',endPointer);box.addEventListener('lostpointercapture',endPointer);
+document.addEventListener('keydown',event=>{if(event.ctrlKey||event.metaKey||event.altKey||event.target.closest('select,input,textarea,button,a,summary')||event.target.isContentEditable)return;if(event.key==='ArrowLeft'){event.preventDefault();stepFrame(-3);}else if(event.key==='ArrowRight'){event.preventDefault();stepFrame(3);}else if(event.key.toLowerCase()==='u')fitView('uk');else if(event.key==='+')zoomAt(1.08);else if(event.key==='-')zoomAt(1/1.08);});
+function handleResize(){
+  const w=box.clientWidth,h=box.clientHeight;
+  if(w===previousBox.width&&h===previousBox.height){layoutSourceClips();return;}
+  if(view.mode!=='custom'||!previousBox.width){fitView(view.mode==='europe'?'europe':'uk');}
+  else{const cx=(previousBox.width/2-view.x)/view.scale,cy=(previousBox.height/2-view.y)/view.scale;view.scale*=Math.min(w/previousBox.width,h/previousBox.height);view.x=w/2-cx*view.scale;view.y=h/2-cy*view.scale;previousBox={width:w,height:h};applyView();}
+  layoutSourceClips();
+}
+if('ResizeObserver' in window)new ResizeObserver(handleResize).observe(box);else window.addEventListener('resize',handleResize);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopLoop();});
+fitView('uk');refresh();
 </script>
-
 </body>
-
 </html>
